@@ -1,0 +1,9 @@
+name: MCLegion-StatureCheck
+main: com.gyozaguy.mclegionstaturecheck.StatureCheck
+version: 1.0
+commands:
+ setstature:
+   description: Sets a required stature to enter a WorldGuard region. If a region is not specified, the plugin will attempt to apply the stature requirement to the region the player is standing in (excluding __global__).
+   usage: /setstature <stature> [<region>]
+   permission: staturecheck.setstature
+   permission-message: Oh nosies! You don't have permission to do that!
