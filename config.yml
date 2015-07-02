@@ -1,0 +1,8 @@
+# Region/stature configurations
+# Created by Steven Stromberg for MCLegion
+
+# Example configuration:
+# Regions:
+#  RegionName: 100
+Regions:
+  __world__: 0
