@@ -24,21 +24,23 @@ import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class StatureCheck extends JavaPlugin {
-	private PlayerPoints playerPoints;
 	private WorldGuardPlugin worldGuard = getWorldGuard();
 	private Map<String, Object> regionStatures;
 	private Server server = Bukkit.getServer();
+	private PlayerPoints playerPoints;
 	
 	@Override
 	public void onEnable() {
 		this.saveDefaultConfig();
+		Plugin playerPointsPlugin = server.getPluginManager().getPlugin("PlayerPoints");
+		playerPoints = PlayerPoints.class.cast(playerPointsPlugin);
 		regionStatures = getConfig().getConfigurationSection("Regions").getValues(false);
-		getLogger().info(regionStatures.toString());
 		getServer().getPluginManager().registerEvents(new Listener() {
 			@EventHandler
-			public void onRegionEnter(PlayerPointsChangeEvent e) {
+			public void onPlayerPointsChange(PlayerPointsChangeEvent e) {
 				UUID playerId = e.getPlayerId();
-				Player player = server.getPlayer(playerId); 
+				Player player = server.getPlayer(playerId);
+				LocalPlayer localPlayer = worldGuard.wrapPlayer(player);
 				int curPoints = playerPoints.getAPI().look(playerId);
 				int newPoints = curPoints + e.getChange();
 				List<World> worlds = server.getWorlds();
@@ -51,16 +53,18 @@ public class StatureCheck extends JavaPlugin {
 					for (Map.Entry<String, ProtectedRegion> region : regions.entrySet()) {
 						regionName = region.getKey();
 						if (regionStatures.containsKey(regionName)) {
-							reqStature = Integer.parseInt((String) regionStatures.get(regionName));
+							reqStature = (int) regionStatures.get(regionName);
 							r = region.getValue();
-							if (!(r.isMember((LocalPlayer) player)) && (newPoints >= reqStature)) {
+							if ((!r.isMember(localPlayer)) && (newPoints >= reqStature)) {
 								members = r.getMembers();
-								members.addPlayer((LocalPlayer) player);
+								members.addPlayer(localPlayer);
 								r.setMembers(members);
-							} else if (r.isMember((LocalPlayer) player) && (newPoints < reqStature)) {
+								getLogger().info("Added " + localPlayer.getName() + " to " + r.getId() + "!");
+							} else if (r.isMember(localPlayer) && (newPoints < reqStature)) {
 								members = r.getMembers();
-								members.removePlayer((LocalPlayer) player);
+								members.removePlayer(localPlayer);
 								r.setMembers(members);
+								getLogger().info("Removed " + localPlayer.getName() + " from " + r.getId() + "!");
 							}
 						}
 					}
